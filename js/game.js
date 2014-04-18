@@ -16,7 +16,7 @@ function create() {
 
 	/* Lucas */
 	lucas.current_direction = 'down';
-	lucas.update_threshold = 10;
+	lucas.update_threshold = 7;
 	lucas.last_updated = 0;
 	lucas.speed = 2;
 	lucas.scale = 2;
@@ -67,17 +67,22 @@ function create() {
 function update() {
 	var kb_in = kb_input();
 
-	if (lucas.last_updated < lucas.update_threshold) {
-		lucas.last_updated++;
+	lucas.last_updated++;
+	// Potential error condition if a player moves in the same direction for a REALLY long time (like 4.8 million years)
+	// 9007199254740992*(1/60)*(1/3600)*(1/24)*(1/7)*(1/52)
+	// ^-max safe int-^^1/fps^ ^-s/h-^  ^h/dy^^dy/wk^^wk/yr^
+	// Not realistic but going in one direction for 4.8 million years is amusing so I'm gonna leave this here. 
+	if (lucas.last_updated == Number.MAX_SAFE_INTEGER) {
+		lucas.last_updated = 0;
 	}
-	console.log(lucas.last_updated);
 	var update = false;
+
 
 	// If keyboard input is in a different direction than the current direction 
 	// AND the object has not been recently updated
 	// update the position and the animation
 	// Else update only the position
-	if (kb_in != lucas.current_direction && lucas.last_updated == lucas.update_threshold) {
+	if ( (kb_in != lucas.current_direction) && (lucas.last_updated % lucas.update_threshold == 0) ) {
 		update = true;
 		lucas.last_updated = 0;
 	}
