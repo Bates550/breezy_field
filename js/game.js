@@ -7,9 +7,7 @@ function preload() {
 }
 
 var lucas = {};
-//var lucas_walk;
 var grass;
-//var cursors;
 
 function create() {
 	/* Grass */
@@ -18,8 +16,8 @@ function create() {
 
 	/* Lucas */
 	lucas.current_direction = 'down';
-	lucas.update_threshold = 5;
-	lucas.last_updated = lucas.update_threshold;
+	lucas.update_threshold = 10;
+	lucas.last_updated = 0;
 	lucas.speed = 2;
 	lucas.scale = 2;
 	lucas.fps = 6;
@@ -67,101 +65,121 @@ function create() {
 }
 
 function update() {
-	lucas.last_updated++;
-	console.log(lucas.current_direction);
+	var kb_in = kb_input();
 
-	if (!( kb_input('down') && kb_input('up') || kb_input('left') && kb_input('right') )) {
-		if (kb_input('down') && kb_input('left')) {
-			lucas.walk.x -= lucas.speed;
-			lucas.walk.y += lucas.speed;
-			if (lucas.last_updated > lucas.update_threshold && lucas.current_direction != 'down-left') {			
-				lucas.current_direction = 'down-left';
-				lucas.last_updated = 0;
-				lucas.walk.animations.play('down-left');
-			}
+	if (lucas.last_updated < lucas.update_threshold) {
+		lucas.last_updated++;
+	}
+	console.log(lucas.last_updated);
+	var update = false;
+
+	// If keyboard input is in a different direction than the current direction 
+	// AND the object has not been recently updated
+	// update the position and the animation
+	// Else update only the position
+	if (kb_in != lucas.current_direction && lucas.last_updated == lucas.update_threshold) {
+		update = true;
+		lucas.last_updated = 0;
+	}
+	if (kb_in == 'down-left') {
+		lucas.walk.x -= lucas.speed;
+		lucas.walk.y += lucas.speed;
+		if (update) {
+			lucas.current_direction = 'down-left';
+			lucas.walk.animations.play('down-left');
 		}
-		else if (kb_input('down') && kb_input('right')) {
-			lucas.walk.x += lucas.speed;
-			lucas.walk.y += lucas.speed;
-			if (lucas.last_updated > lucas.update_threshold && lucas.current_direction != 'down-right') {	
-				lucas.current_direction = 'down-right';
-				lucas.last_updated = 0;
-				lucas.walk.animations.play('down-right');
-			}
+	}
+	else if (kb_in == 'down-right') {
+		lucas.walk.x += lucas.speed;
+		lucas.walk.y += lucas.speed;
+		if (update) {
+			lucas.current_direction = 'down-right';
+			lucas.walk.animations.play('down-right');
 		}
-		else if (kb_input('up') && kb_input('left')) {
-			lucas.walk.x -= lucas.speed;
-			lucas.walk.y -= lucas.speed;
-			if (lucas.last_updated > lucas.update_threshold && lucas.current_direction != 'up-left') {	
-				lucas.current_direction = 'up-left';
-				lucas.last_updated = 0;
-				lucas.walk.animations.play('up-left');
-			}
+	}
+	else if (kb_in == 'up-left') {
+		lucas.walk.x -= lucas.speed;
+		lucas.walk.y -= lucas.speed;
+		if (update) {	
+			lucas.current_direction = 'up-left';
+			lucas.walk.animations.play('up-left');
 		}
-		else if (kb_input('up') && kb_input('right')) {
-			lucas.walk.x += lucas.speed;
-			lucas.walk.y -= lucas.speed;
-			if (lucas.last_updated > lucas.update_threshold && lucas.current_direction != 'up-right') {	
-				lucas.current_direction = 'up-right';
-				lucas.last_updated = 0;
-				lucas.walk.animations.play('up-right');
-			}
+	}
+	else if (kb_in == 'up-right') {
+		lucas.walk.x += lucas.speed;
+		lucas.walk.y -= lucas.speed;
+		if (update) {	
+			lucas.current_direction = 'up-right';
+			lucas.walk.animations.play('up-right');
 		}
-		else if (kb_input('down')) {
-			lucas.walk.y += lucas.speed;
-			if (lucas.last_updated > lucas.update_threshold && lucas.current_direction != 'down') {	
-				lucas.current_direction = 'down';
-				lucas.last_updated = 0;
-				lucas.walk.animations.play('down');
-			}
+	}
+	else if (kb_in == 'down') {
+		lucas.walk.y += lucas.speed;
+		if (update) {	
+			lucas.current_direction = 'down';
+			lucas.walk.animations.play('down');
 		}
-		else if (kb_input('up')) {
-			lucas.walk.y -= lucas.speed;
-			if (lucas.last_updated > lucas.update_threshold && lucas.current_direction != 'up') {
-				lucas.current_direction = 'up';
-				lucas.last_updated = 0;
-				lucas.walk.animations.play('up');
-			}
+	}
+	else if (kb_in == 'up') {
+		lucas.walk.y -= lucas.speed;
+		if (update) {
+			lucas.current_direction = 'up';
+			lucas.walk.animations.play('up');
 		}
-		else if (kb_input('left')) {
-			lucas.walk.x -= lucas.speed;
-			if (lucas.last_updated > lucas.update_threshold && lucas.current_direction != 'left') {	
-				lucas.last_updated = 0;
-				lucas.current_direction = 'left';
-				lucas.walk.animations.play('left');
-			}
+	}
+	else if (kb_in == 'left') {
+		lucas.walk.x -= lucas.speed;
+		if (update) {	
+			lucas.current_direction = 'left';
+			lucas.walk.animations.play('left');
 		}
-		else if (kb_input('right')) {
-			lucas.walk.x += lucas.speed;
-			if (lucas.last_updated > lucas.update_threshold && lucas.current_direction != 'right') {	
-				lucas.last_updated = 0;
-				lucas.current_direction = 'right';
-				lucas.walk.animations.play('right');
-			}
+	}
+	else if (kb_in == 'right') {
+		lucas.walk.x += lucas.speed;
+		if (update) {	
+			lucas.current_direction = 'right';
+			lucas.walk.animations.play('right');
 		}
-		else {
-			// walk in current direction.
-			
-			lucas.face_current_direction();
-		}
+	}
+	else {
+		lucas.face_current_direction();
 	}
 }
 
-function kb_input(direction) {
-	switch (direction) {
-	case 'left':
-		return game.input.keyboard.isDown(Phaser.Keyboard.LEFT);
-		break;
-	case 'right':
-		return game.input.keyboard.isDown(Phaser.Keyboard.RIGHT);
-		break;
-	case 'up':
-		return game.input.keyboard.isDown(Phaser.Keyboard.UP);
-		break;
-	case 'down':
-		return game.input.keyboard.isDown(Phaser.Keyboard.DOWN);
-		break;
+// If both left and right or both up and down are pressed kb_input will return a nonsense value. 
+function kb_input() {
+	var result 	= "";
+	var up 		= game.input.keyboard.isDown(Phaser.Keyboard.UP);
+	var right 	= game.input.keyboard.isDown(Phaser.Keyboard.RIGHT);
+	var down 	= game.input.keyboard.isDown(Phaser.Keyboard.DOWN);
+	var left 	= game.input.keyboard.isDown(Phaser.Keyboard.LEFT);
+
+	if (up) {
+		if (result !== "") {
+			result += '-';
+		}
+		result += 'up';
 	}
+	if (down) {
+		if (result !== "") {
+			result += '-';
+		}
+		result += 'down';
+	}
+	if (left) {
+		if (result !== "") {
+			result += '-';
+		}
+		result += 'left';
+	} 
+	if (right) {
+		if (result !== "") {
+			result += '-';
+		}
+		result += 'right';
+	}
+
+	return result;
 }
 
 function render() {
