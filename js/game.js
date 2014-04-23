@@ -4,25 +4,32 @@ var game = new Phaser.Game(600, 600, Phaser.CANVAS, '', { preload: preload, crea
 
 function preload() {
 	game.load.image('grass', 'assets/grass_tile.png');
+	game.load.image('menu_bg', 'assets/menu_bg.png');
+	game.load.image('menu_item_bg', 'assets/menu_item_bg.png');
 	game.load.spritesheet('lucas_walk', 'assets/lucas_walk.png', 18, 28);
 }
 
+var cursors; 
+var pause_key;
+var pause = false;
 var lucas = {};
 var grass;
-var cursors; 
+var menu_bg;
+var menu_item_bg;
 
 function create() {
-	var world_bounds = { x: 0, y: 0, w: 1421, h: 1421 };
-	/*var camera_bounds = {	x: world_bounds.x-game.width/2,
-							y: world_bounds.y-game.height/2,
-							w: world_bounds.w+game.height/2,
-							h: world_bounds.h+game.height/2 };
-	*/
+	/* World Bounds */
+	var world_bounds = { x: 0, y: 0, w: 1420, h: 1420 };
 	game.world.setBounds(world_bounds.x, world_bounds.y, world_bounds.w, world_bounds.h);
-	//game.camera.bounds = new Phaser.Rectangle(camera_bounds.x, camera_bounds.y, camera_bounds.w, camera_bounds.h);
 
 	/* Keyboard Input */ 
 	cursors = game.input.keyboard.createCursorKeys();
+	pause_key = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+	pause_key.onDown.add(function toggle_pause() {
+		pause = !pause;
+		menu_bg.exists = !menu_bg.exists;
+
+	}, this);
 
 	/* Grass */
 	grass = game.add.tileSprite(game.world.x, game.world.y, game.world.width, game.world.height, 'grass');
@@ -78,11 +85,25 @@ function create() {
 				break;
 		}
 	}
+
+	/* Menu Background */
+	menu_bg = game.add.sprite(100, 100, 'menu_bg');
+	console.log(menu_bg.x, menu_bg.y, menu_bg.width, menu_bg.height);
+	menu_bg.exists = false;
+
 }
 
 function update() {
 	var kb_in = kb_input();
-	update_lucas(kb_in);
+	if (!pause) {
+		update_lucas(kb_in);
+	}
+	else {
+		update_menu(kb_in);
+	}
+}
+
+function update_menu(kb_in) {
 }
 
 function update_lucas(kb_in) {
@@ -94,20 +115,20 @@ function update_lucas(kb_in) {
 	// If going farther would cause the camera to display something outside of the game world
 	// put lucas on the opposite side of the world such that it loops (and there is no escaping!)
 	if (lucas.walk.x <= (game.world.bounds.x+game.width/2) ) {
-		console.log(lucas.walk.x, game.world.bounds.x);
 		lucas.walk.x = game.world.bounds.width-game.width/2-wrap_overshoot;
+		//console.log(lucas.walk.x, game.world.bounds.x);
 	}
 	if (lucas.walk.x >= (game.world.bounds.width-game.width/2) ) {
-		console.log(lucas.walk.x, game.world.bounds.width);
 		lucas.walk.x = game.world.bounds.x+game.width/2+wrap_overshoot;
+		//console.log(lucas.walk.x, game.world.bounds.width);
 	}
 	if (lucas.walk.y <= game.world.bounds.y+game.height/2) {
-		console.log(lucas.walk.y, game.world.bounds.y);
 		lucas.walk.y = game.world.bounds.height-game.height/2-wrap_overshoot;
+		//console.log(lucas.walk.y, game.world.bounds.y);
 	}
 	if (lucas.walk.y >= game.world.bounds.height-game.height/2) {
-		console.log(lucas.walk.y, game.world.bounds.height);
 		lucas.walk.y = game.world.bounds.y+game.height/2+wrap_overshoot;
+		//console.log(lucas.walk.y, game.world.bounds.height);
 	}
 
 	// Potential error condition if a player moves in the same direction for a REALLY long time (like 4.8 million years)
