@@ -5,7 +5,7 @@ var game = new Phaser.Game(600, 600, Phaser.CANVAS, '', { preload: preload, crea
 function preload() {
 	game.load.image('grass', 'assets/grass_tile.png');
 	game.load.image('menu_bg', 'assets/menu_bg.png');
-	game.load.image('menu_item_bg', 'assets/menu_item_bg.png');
+	game.load.image('menu_item_bg_big', 'assets/menu_item_bg_big.png');
 	game.load.spritesheet('lucas_walk', 'assets/lucas_walk.png', 18, 28);
 }
 
@@ -14,6 +14,7 @@ var pause_key;
 var pause = false;
 var lucas = {};
 var grass;
+var menu = {};
 var menu_bg;
 var menu_item_bg;
 
@@ -28,7 +29,7 @@ function create() {
 	console.log(game.input.keyboard.keys);
 	pause_key.onDown.add(function() {
 		pause = !pause;
-		menu_bg.exists = !menu_bg.exists;
+		menu.pause();
 	}, this);
 
 	/* Grass */
@@ -89,10 +90,25 @@ function create() {
 	}
 
 	/* Menu Background */
-	menu_bg = game.add.sprite(100, 100, 'menu_bg');
-	console.log(menu_bg.x, menu_bg.y, menu_bg.width, menu_bg.height);
+	menu.exists = false;
+	menu.x = game.width/2;
+	menu.y = game.height/2;
+	menu.spr = {};
+
+	var menu_bg = game.add.sprite(100, 100, 'menu_bg');
 	menu_bg.anchor.setTo(0.5, 0.5);
 	menu_bg.exists = false;
+	menu.spr['bg'] = menu_bg;
+
+	var active_a = game.add.sprite(150, 150, 'menu_item_bg_big');
+	active_a.anchor.setTo(0.5, 0.5);
+	active_a.exists = false;
+	menu.spr['active_a'] = active_a;
+
+	menu.pause = function() {
+		menu.spr['bg'].exists 	= !menu.spr['bg'].exists;
+		menu.spr['active_a'].exists	= !menu.spr['active_a'].exists;
+	}
 }
 
 function update() {
@@ -106,8 +122,21 @@ function update() {
 }
 
 function update_menu(kb_in) {
-	menu_bg.x = lucas.x;
-	menu_bg.y = lucas.y;
+	menu.x = lucas.x;
+	menu.y = lucas.y;
+
+	menu.spr['bg'].x = menu.x;
+	menu.spr['bg'].y = menu.y;
+
+	menu.spr['active_a'].x = menu.x - 150;
+	menu.spr['active_a'].y = menu.y - 100;	
+
+	/*for (var key in menu.spr) {
+		var sprite = menu.spr[key];
+		sprite.x = menu.x;
+		sprite.y = menu.y;
+		//menu.spr[key].exists = menu.exists;
+	}*/
 }
 
 function update_lucas(kb_in) {
