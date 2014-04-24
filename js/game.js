@@ -25,10 +25,10 @@ function create() {
 	/* Keyboard Input */ 
 	cursors = game.input.keyboard.createCursorKeys();
 	pause_key = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-	pause_key.onDown.add(function toggle_pause() {
+	console.log(game.input.keyboard.keys);
+	pause_key.onDown.add(function() {
 		pause = !pause;
 		menu_bg.exists = !menu_bg.exists;
-
 	}, this);
 
 	/* Grass */
@@ -42,8 +42,10 @@ function create() {
 	lucas.speed = 2;
 	lucas.scale = 2;
 	lucas.fps = 6;
+	lucas.x = game.width/2;
+	lucas.y = game.height/2;
 
-	lucas.walk = game.add.sprite(game.width/2+50, game.height/2+50, 'lucas_walk');
+	lucas.walk = game.add.sprite(lucas.x, lucas.y, 'lucas_walk');
 	lucas.walk.scale.setTo(lucas.scale, lucas.scale);
 	lucas.walk.anchor.setTo(0.5, 0.5);
 	game.camera.follow(lucas.walk);
@@ -89,8 +91,8 @@ function create() {
 	/* Menu Background */
 	menu_bg = game.add.sprite(100, 100, 'menu_bg');
 	console.log(menu_bg.x, menu_bg.y, menu_bg.width, menu_bg.height);
+	menu_bg.anchor.setTo(0.5, 0.5);
 	menu_bg.exists = false;
-
 }
 
 function update() {
@@ -104,6 +106,8 @@ function update() {
 }
 
 function update_menu(kb_in) {
+	menu_bg.x = lucas.x;
+	menu_bg.y = lucas.y;
 }
 
 function update_lucas(kb_in) {
@@ -116,19 +120,15 @@ function update_lucas(kb_in) {
 	// put lucas on the opposite side of the world such that it loops (and there is no escaping!)
 	if (lucas.walk.x <= (game.world.bounds.x+game.width/2) ) {
 		lucas.walk.x = game.world.bounds.width-game.width/2-wrap_overshoot;
-		//console.log(lucas.walk.x, game.world.bounds.x);
 	}
 	if (lucas.walk.x >= (game.world.bounds.width-game.width/2) ) {
 		lucas.walk.x = game.world.bounds.x+game.width/2+wrap_overshoot;
-		//console.log(lucas.walk.x, game.world.bounds.width);
 	}
 	if (lucas.walk.y <= game.world.bounds.y+game.height/2) {
 		lucas.walk.y = game.world.bounds.height-game.height/2-wrap_overshoot;
-		//console.log(lucas.walk.y, game.world.bounds.y);
 	}
 	if (lucas.walk.y >= game.world.bounds.height-game.height/2) {
 		lucas.walk.y = game.world.bounds.y+game.height/2+wrap_overshoot;
-		//console.log(lucas.walk.y, game.world.bounds.height);
 	}
 
 	// Potential error condition if a player moves in the same direction for a REALLY long time (like 4.8 million years)
@@ -209,6 +209,10 @@ function update_lucas(kb_in) {
 	else {
 		lucas.face_current_direction();
 	}
+
+	// Update lucas container coords
+	lucas.x = lucas.walk.x;
+	lucas.y = lucas.walk.y;
 }
 
 // If both left and right or both up and down are pressed kb_input will return a nonsense value. 
