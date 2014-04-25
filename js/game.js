@@ -4,8 +4,12 @@ var game = new Phaser.Game(600, 600, Phaser.CANVAS, '', { preload: preload, crea
 
 function preload() {
 	game.load.image('grass', 'assets/grass_tile.png');
-	game.load.image('menu_bg', 'assets/menu_bg.png');
-	game.load.image('menu_item_bg_big', 'assets/menu_item_bg_big.png');
+	game.load.image('menu', 'assets/menu.png')
+	/*
+	game.load.image('menu_bg', 'assets/menu/bg.png');
+	game.load.image('menu_active_a', 'assets/menu/active_a.png');
+	game.load.image('menu_active_b', 'assets/menu/active_b.png');
+	*/
 	game.load.spritesheet('lucas_walk', 'assets/lucas_walk.png', 18, 28);
 }
 
@@ -15,8 +19,10 @@ var pause = false;
 var lucas = {};
 var grass;
 var menu = {};
+/*
 var menu_bg;
 var menu_item_bg;
+*/
 
 function create() {
 	/* World Bounds */
@@ -93,21 +99,34 @@ function create() {
 	menu.exists = false;
 	menu.x = game.width/2;
 	menu.y = game.height/2;
-	menu.spr = {};
+	//menu.spr = {};
 
-	var menu_bg = game.add.sprite(100, 100, 'menu_bg');
-	menu_bg.anchor.setTo(0.5, 0.5);
+	/*
+	// Doesn't matter where we intially place any of the menu sprites: 
+	// their position will be updated in update_menu() before they are visible.
+	var menu_bg = game.add.sprite(0, 0, 'menu_bg');
 	menu_bg.exists = false;
 	menu.spr['bg'] = menu_bg;
 
-	var active_a = game.add.sprite(150, 150, 'menu_item_bg_big');
-	active_a.anchor.setTo(0.5, 0.5);
-	active_a.exists = false;
-	menu.spr['active_a'] = active_a;
+	var menu_active_a = game.add.sprite(0, 0, 'menu_active_a');
+	menu_active_a.exists = false;
+	menu.spr['menu_active_a'] = menu_active_a;
+
+	var menu_active_b = game.add.sprite(0, 0, 'menu_active_b');
+	menu_active_b.exists = false;
+	menu.spr['menu_active_b'] = menu_active_b;
+	*/
+
+	menu.spr = game.add.sprite(0, 0, 'menu');
+	menu.spr.exists = false;
 
 	menu.pause = function() {
+		menu.spr.exists = !menu.spr.exists;
+		/*
 		menu.spr['bg'].exists 	= !menu.spr['bg'].exists;
-		menu.spr['active_a'].exists	= !menu.spr['active_a'].exists;
+		menu.spr['menu_active_a'].exists	= !menu.spr['menu_active_a'].exists;
+		menu.spr['menu_active_b'].exists	= !menu.spr['menu_active_b'].exists;
+		*/
 	}
 }
 
@@ -122,14 +141,22 @@ function update() {
 }
 
 function update_menu(kb_in) {
-	menu.x = lucas.x;
-	menu.y = lucas.y;
+	menu.x = lucas.x - game.width/2 + 100;
+	menu.y = lucas.y - game.height/2 + 100;
 
+	menu.spr.x = menu.x;
+	menu.spr.y = menu.y;
+	 
+	/*
 	menu.spr['bg'].x = menu.x;
 	menu.spr['bg'].y = menu.y;
 
-	menu.spr['active_a'].x = menu.x - 150;
-	menu.spr['active_a'].y = menu.y - 100;	
+	menu.spr['menu_active_a'].x = menu.x + 15;
+	menu.spr['menu_active_a'].y = menu.y + 15;	
+
+	menu.spr['menu_active_b'].x = menu.x + 15;
+	menu.spr['menu_active_b'].y = menu.y + 145;	
+	*/
 
 	/*for (var key in menu.spr) {
 		var sprite = menu.spr[key];
