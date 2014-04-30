@@ -4,7 +4,9 @@ var game = new Phaser.Game(600, 600, Phaser.CANVAS, '', { preload: preload, crea
 
 function preload() {
 	game.load.image('grass', 'assets/grass_tile.png');
-	game.load.image('menu', 'assets/menu.png')
+	game.load.image('menu', 'assets/menu.png');
+	game.load.image('sign', 'assets/sign_post.png');
+	game.load.image('dir_sign', 'assets/directional_sign_post.png');
 	/*
 	game.load.image('menu_bg', 'assets/menu/bg.png');
 	game.load.image('menu_active_a', 'assets/menu/active_a.png');
@@ -18,6 +20,7 @@ var pause_key;
 var pause = false;
 var lucas = {};
 var grass;
+var signs = {};
 var menu = {};
 /*
 var menu_bg;
@@ -34,13 +37,21 @@ function create() {
 	pause_key = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 	console.log(game.input.keyboard.keys);
 	pause_key.onDown.add(function() {
-		pause = !pause;
-		menu.pause();
+		if (menu.found) {
+			pause = !pause;
+			menu.pause();
+		}
 	}, this);
 
 	/* Grass */
 	grass = game.add.tileSprite(game.world.x, game.world.y, game.world.width, game.world.height, 'grass');
 	grass.scale.setTo(2, 2);
+
+	/* Signs */
+	signs.sign1 = game.add.sprite(game.world.width/2-30, game.world.y+game.world.height/2, 'sign');
+	signs.sign1.scale.setTo(2, 2);
+	signs.sign2 = game.add.sprite(game.world.width/2+30, game.world.y+game.world.height/2, 'dir_sign');
+	signs.sign2.scale.setTo(2, 2);
 
 	/* Lucas */
 	lucas.current_direction = 'none';
@@ -96,9 +107,10 @@ function create() {
 	}
 
 	/* Menu Background */
-	menu.exists = false;
+	menu.found = false; // Becomes true when the player finds the menu item and grants access to the menu.
 	menu.x = game.width/2;
 	menu.y = game.height/2;
+	//menu.exists = false;
 	//menu.spr = {};
 
 	/*
@@ -121,7 +133,9 @@ function create() {
 	menu.spr.exists = false;
 
 	menu.pause = function() {
-		menu.spr.exists = !menu.spr.exists;
+		if (menu.found) {
+			menu.spr.exists = !menu.spr.exists;
+		}
 		/*
 		menu.spr['bg'].exists 	= !menu.spr['bg'].exists;
 		menu.spr['menu_active_a'].exists	= !menu.spr['menu_active_a'].exists;
