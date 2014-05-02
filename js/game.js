@@ -27,6 +27,29 @@ var menu_bg;
 var menu_item_bg;
 */
 
+/* General function for box collision detection. 
+ * Should be assigned as a method to an object with x, y, width, and height 
+ * properties and passed in an object also containing said properties.
+ * Padding is added to the object box dimensions such that the object
+ * behaves as if it were bigger than it actually is. 
+ * Additionally, caller and object should be anchored in their centers. 
+ */
+function collide(object, xpad, ypad, wpad, hpad) {
+		xpad = typeof xpad !== 'undefined' ? xpad : 0;
+		ypad = typeof ypad !== 'undefined' ? ypad : 0;
+		wpad = typeof wpad !== 'undefined' ? wpad : 0;
+		hpad = typeof hpad !== 'undefined' ? hpad : -35;
+		var tx1 = (this.x+this.width/2);
+		var ox1 = (object.x-object.width/2-xpad);
+		var tx2 = (this.x-this.width/2);
+		var ox2 = (object.x+object.width/2+wpad);
+		var ty1 = (this.y+this.height/2);
+		var oy1 = (object.y-object.height/2-ypad);
+		var ty2 = (this.y-this.height/2);
+		var oy2 = (object.y+object.height/2+hpad);
+		return ((tx1 >= ox1 && tx2 <= ox2) && (ty1 >= oy1 && ty2 <= oy2));
+	}
+
 function create() {
 	/* World Bounds */
 	var world_bounds = { x: 0, y: 0, w: 1420, h: 1420 };
@@ -35,7 +58,7 @@ function create() {
 	/* Keyboard Input */ 
 	cursors = game.input.keyboard.createCursorKeys();
 	pause_key = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-	console.log(game.input.keyboard.keys);
+	//console.log(game.input.keyboard.keys);
 	pause_key.onDown.add(function() {
 		if (menu.found) {
 			pause = !pause;
@@ -48,10 +71,14 @@ function create() {
 	grass.scale.setTo(2, 2);
 
 	/* Signs */
-	signs.sign1 = game.add.sprite(game.world.width/2-30, game.world.y+game.world.height/2, 'sign');
+	signs.sign1 = game.add.sprite(game.world.width/2+30, game.world.y+game.world.height/2, 'sign');
 	signs.sign1.scale.setTo(2, 2);
-	signs.sign2 = game.add.sprite(game.world.width/2+30, game.world.y+game.world.height/2, 'dir_sign');
+	signs.sign1.anchor.setTo(0.5, 0.5);
+	signs.sign2 = game.add.sprite(game.world.width/2-30, game.world.y+game.world.height/2, 'dir_sign');
 	signs.sign2.scale.setTo(2, 2);
+	signs.sign2.anchor.setTo(0.5, 0.5);
+	var sign1 = signs.sign1;
+	console.log(sign1.x-sign1.width/2, sign1.y-sign1.height/2, sign1.x+sign1.width/2, sign1.y+sign1.height/2);
 
 	/* Lucas */
 	lucas.current_direction = 'none';
@@ -60,13 +87,16 @@ function create() {
 	lucas.speed = 2;
 	lucas.scale = 2;
 	lucas.fps = 6;
-	lucas.x = game.width/2;
-	lucas.y = game.height/2;
+	lucas.x = 690; //game.width/2;
+	lucas.y = 650;//game.height/2;
 
 	lucas.walk = game.add.sprite(lucas.x, lucas.y, 'lucas_walk');
 	lucas.walk.scale.setTo(lucas.scale, lucas.scale);
 	lucas.walk.anchor.setTo(0.5, 0.5);
 	game.camera.follow(lucas.walk);
+
+	lucas.width = lucas.walk.width;
+	lucas.height = lucas.walk.height;
 
 	lucas.walk.animations.add('down-left', 	[4, 3, 5, 3], 		lucas.fps, true);
 	lucas.walk.animations.add('down', 		[1, 0, 2, 0], 		lucas.fps, true);
@@ -76,6 +106,8 @@ function create() {
 	lucas.walk.animations.add('up-left', 	[16, 15, 17, 15], 	lucas.fps, true);
 	lucas.walk.animations.add('up-right', 	[19, 18, 20, 18], 	lucas.fps, true);
 	lucas.walk.animations.add('up', 		[22, 21, 23, 21], 	lucas.fps, true);
+
+	lucas.collide = collide;
 
 	lucas.face_current_direction = function() {
 		switch(lucas.current_direction) {
@@ -184,6 +216,8 @@ function update_lucas(kb_in) {
 	lucas.last_updated++;
 	var update_direction = false;
 	var wrap_overshoot = 36;
+
+	console.log(lucas.collide(signs.sign1));
 
 	/* Map wrapping */
 	// If going farther would cause the camera to display something outside of the game world
@@ -322,6 +356,6 @@ function kb_input() {
 }
 
 function render() {
-    game.debug.spriteInfo(lucas.walk, 20, 32);
+    //game.debug.spriteInfo(lucas.walk, 20, 32);
 
 }
