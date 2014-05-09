@@ -17,6 +17,7 @@ var lucas = {};
 var grass;
 var signs = {};
 var menu = {};
+var main_group;
 /*
 var menu_bg;
 var menu_item_bg;
@@ -120,28 +121,32 @@ function create() {
 	grass = game.add.tileSprite(game.world.x, game.world.y, game.world.width, game.world.height, 'grass');
 	grass.scale.setTo(2, 2);
 
+	main_group = game.add.group();
+
 	/* Signs */
-	signs.sign1 = game.add.sprite(game.world.width/2+30, game.world.y+game.world.height/2, 'sign');
+	//signs.sign1 = game.add.sprite(game.world.width/2+30, game.world.y+game.world.height/2, 'sign');
+	signs.sign1 = main_group.create(game.world.width/2+30, game.world.y+game.world.height/2, 'sign');
 	signs.sign1.scale.setTo(2, 2);
 	signs.sign1.anchor.setTo(0.5, 0.5);
-	signs.sign2 = game.add.sprite(game.world.width/2-30, game.world.y+game.world.height/2, 'dir_sign');
+	signs.sign2 = main_group.create(game.world.width/2-30, game.world.y+game.world.height/2, 'dir_sign');
 	signs.sign2.scale.setTo(2, 2);
 	signs.sign2.anchor.setTo(0.5, 0.5);
-	var sign1 = signs.sign1;
-	console.log(sign1.x-sign1.width/2, sign1.y-sign1.height/2, sign1.x+sign1.width/2, sign1.y+sign1.height/2);
+	//var sign1 = signs.sign1;
+	//console.log(sign1.x-sign1.width/2, sign1.y-sign1.height/2, sign1.x+sign1.width/2, sign1.y+sign1.height/2);
 
 	/* Lucas */
 	lucas.current_direction = 'none';
 	lucas.collision = {up: false, down: false, left: false, right: false}
 	lucas.update_threshold = 7;
 	lucas.last_updated = 0;
-	lucas.speed = 1;
+	lucas.speed = 2;
 	lucas.scale = 2;
 	lucas.fps = 6;
 	lucas.x = 690; //game.width/2;
 	lucas.y = 650;//game.height/2;
 
-	lucas.walk = game.add.sprite(lucas.x, lucas.y, 'lucas_walk');
+	//lucas.walk = game.add.sprite(lucas.x, lucas.y, 'lucas_walk');
+	lucas.walk = main_group.create(lucas.x, lucas.y, 'lucas_walk');
 	lucas.walk.scale.setTo(lucas.scale, lucas.scale);
 	lucas.walk.anchor.setTo(0.5, 0.5);
 	game.camera.follow(lucas.walk);
@@ -235,6 +240,7 @@ function update() {
 	else {
 		update_menu(kb_in);
 	}
+	main_group.sort('y', Phaser.Group.SORT_ASCENDING);
 }
 
 function update_menu(kb_in) {
@@ -268,7 +274,7 @@ function update_lucas(kb_in) {
 	var update_direction = false;
 	var wrap_overshoot = 36;
 
-	var collision = lucas.collision = lucas.collide(signs.sign1, -5, -10, -5, -35);
+	var collision = lucas.collision = lucas.collide(signs.sign1, -5, -15, -5, -35);
 
 	/* Map wrapping */
 	// If going farther would cause the camera to display something outside of the game world
