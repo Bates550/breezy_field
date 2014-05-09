@@ -38,17 +38,72 @@ function collide(object, xpad, ypad, wpad, hpad) {
 		xpad = typeof xpad !== 'undefined' ? xpad : 0;
 		ypad = typeof ypad !== 'undefined' ? ypad : 0;
 		wpad = typeof wpad !== 'undefined' ? wpad : 0;
-		hpad = typeof hpad !== 'undefined' ? hpad : -35;
-		var tx1 = (this.x+this.width/2);
-		var ox1 = (object.x-object.width/2-xpad);
-		var tx2 = (this.x-this.width/2);
-		var ox2 = (object.x+object.width/2+wpad);
-		var ty1 = (this.y+this.height/2);
-		var oy1 = (object.y-object.height/2-ypad);
-		var ty2 = (this.y-this.height/2);
-		var oy2 = (object.y+object.height/2+hpad);
-		return ((tx1 >= ox1 && tx2 <= ox2) && (ty1 >= oy1 && ty2 <= oy2));
+		hpad = typeof hpad !== 'undefined' ? hpad : 0;
+
+		var up 			= false, 
+			down 		= false, 
+			left 		= false, 
+			right 		= false, 
+			inwidth 	= false, 
+			inheight 	= false;
+		var result = {
+			up: 	false,
+			down: 	false,
+			left: 	false,
+			right: 	false
+		};
+
+		var tx1 = (this.x-this.width/2); 			// Left edge of this
+		var ox1 = (object.x-object.width/2-xpad);	// Left edge of object
+		var tx2 = (this.x+this.width/2);			// Right edge of this
+		var ox2 = (object.x+object.width/2+wpad);	// Left edge of object
+		var ty1 = (this.y-this.height/2);			// Top edge of this
+		var oy1 = (object.y-object.height/2-ypad);	// Top edge of object
+		var ty2 = (this.y+this.height/2);			// Bottom edge of this
+		var oy2 = (object.y+object.height/2+hpad);	// Bottom edge of object
+
+		console.assert(tx2 > tx1, "Left edge of this is at a larger x coordinate than the right.");
+		console.assert(ty2 > ty1, "Top edge of this is at a larger y coordinate than the bottom.");		
+		console.assert(ox2 > ox1, "Left edge of object is at a larger x coordinate than the right.");
+		console.assert(oy2 > oy1, "Top edge of object is at a larger y coordinate than the bottom.");
+
+		/* Determine conditions for collision */
+		if (ty1 <= oy2 && ty1 > oy1) { // Top edge of this <= bottom edge of object
+			up = true;					// AND top edge of this >= top edge of object
+		}
+		if (ty2 > oy1 && ty2 <= oy2) { // Bottom edge of this >= top edge of object
+			down = true;				// AND bottom edge of this <= bottom edge of object
+		}
+		if (tx1 <= ox2 && tx1 > ox1) { // Left edge of this <= right edge of object
+			left = true;				// AND left edge of this >= left edge of object
+		}
+		if (tx2 > ox1 && tx2 <= ox2) { // Right edge of this >= left edge of object
+			right = true;				// AND right edge of this <= right edge of object
+		}
+		if (tx1 <= ox1 && tx2 > ox2) { // Left edge of this <= left edge of object
+			inwidth = true;				// AND right edge of this >= right edge of object
+		}
+		if (ty1 <= oy1 && ty2 > oy2) { // Top edge of this <= top edge of object
+			inheight = true;			// Bottom edge of this >= bottom edge of object
+		}
+
+
+		/* Determine direction of collision */
+		if ((up && (right || left)) || (up && inwidth)) {
+			result.up = true; // return 'up';
+		}	
+		if ((down && (right || left)) || (down && inwidth)) {
+			result.down = true; // return 'down';
+		}
+		if ((left && (up || down)) || (left && inheight)) {
+			result.left = true; // return 'left';
+		}
+		if ((right && (up || down)) || (right && inheight)) {
+			result.right = true; // return 'right';
+		}
+		return result;
 	}
+
 
 function create() {
 	/* World Bounds */
@@ -58,7 +113,6 @@ function create() {
 	/* Keyboard Input */ 
 	cursors = game.input.keyboard.createCursorKeys();
 	pause_key = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-	//console.log(game.input.keyboard.keys);
 	pause_key.onDown.add(function() {
 		if (menu.found) {
 			pause = !pause;
@@ -82,9 +136,10 @@ function create() {
 
 	/* Lucas */
 	lucas.current_direction = 'none';
+	lucas.collision = {up: false, down: false, left: false, right: false}
 	lucas.update_threshold = 7;
 	lucas.last_updated = 0;
-	lucas.speed = 2;
+	lucas.speed = 1;
 	lucas.scale = 2;
 	lucas.fps = 6;
 	lucas.x = 690; //game.width/2;
@@ -217,7 +272,9 @@ function update_lucas(kb_in) {
 	var update_direction = false;
 	var wrap_overshoot = 36;
 
-	console.log(lucas.collide(signs.sign1));
+	lucas.collision = lucas.collide(signs.sign1, -5, -10, -5, -35);
+
+	var collision = lucas.collision;
 
 	/* Map wrapping */
 	// If going farther would cause the camera to display something outside of the game world
@@ -234,7 +291,6 @@ function update_lucas(kb_in) {
 	if (lucas.walk.y >= game.world.bounds.height-game.height/2) {
 		lucas.walk.y = game.world.bounds.y+game.height/2+wrap_overshoot;
 	}
-
 	// Potential error condition if a player moves in the same direction for a REALLY long time (like 4.8 million years)
 	// 9007199254740992*(1/60)*(1/3600)*(1/24)*(1/7)*(1/52)
 	// ^-max safe int-^^1/fps^ ^-s/h-^  ^h/dy^^dy/wk^^wk/yr^
@@ -251,60 +307,72 @@ function update_lucas(kb_in) {
 		lucas.last_updated = 0;
 	}
 	if (kb_in == 'down-left') {
-		lucas.walk.x -= lucas.speed;
-		lucas.walk.y += lucas.speed;
+		if (!collision.down && !collision.left) {
+			lucas.walk.x -= lucas.speed;
+			lucas.walk.y += lucas.speed;
+		}
 		if (update_direction) {
 			lucas.current_direction = 'down-left';
 			lucas.walk.animations.play('down-left');
 		}
 	}
 	else if (kb_in == 'down-right') {
-		lucas.walk.x += lucas.speed;
-		lucas.walk.y += lucas.speed;
+		if (!collision.down && !collision.right) {
+			lucas.walk.x += lucas.speed;
+			lucas.walk.y += lucas.speed;
+		}
 		if (update_direction) {
 			lucas.current_direction = 'down-right';
 			lucas.walk.animations.play('down-right');
 		}
 	}
 	else if (kb_in == 'up-left') {
-		lucas.walk.x -= lucas.speed;
-		lucas.walk.y -= lucas.speed;
+		if (!collision.up && !collision.left) {
+			lucas.walk.x -= lucas.speed;
+			lucas.walk.y -= lucas.speed;
+		}
 		if (update_direction) {	
 			lucas.current_direction = 'up-left';
 			lucas.walk.animations.play('up-left');
 		}
 	}
 	else if (kb_in == 'up-right') {
-		lucas.walk.x += lucas.speed;
-		lucas.walk.y -= lucas.speed;
+		if (!collision.up && !collision.right) {
+			lucas.walk.x += lucas.speed;
+			lucas.walk.y -= lucas.speed;
+		}
 		if (update_direction) {	
 			lucas.current_direction = 'up-right';
 			lucas.walk.animations.play('up-right');
 		}
 	}
 	else if (kb_in == 'down') {
-		lucas.walk.y += lucas.speed;
+		if (!collision.down) 
+			lucas.walk.y += lucas.speed;
 		if (update_direction) {	
 			lucas.current_direction = 'down';
 			lucas.walk.animations.play('down');
 		}
 	}
 	else if (kb_in == 'up') {
-		lucas.walk.y -= lucas.speed;
+		if (!collision.up)
+			lucas.walk.y -= lucas.speed;
 		if (update_direction) {
 			lucas.current_direction = 'up';
 			lucas.walk.animations.play('up');
 		}
 	}
 	else if (kb_in == 'left') {
-		lucas.walk.x -= lucas.speed;
+		if (!collision.left)
+			lucas.walk.x -= lucas.speed;
 		if (update_direction) {	
 			lucas.current_direction = 'left';
 			lucas.walk.animations.play('left');
 		}
 	}
 	else if (kb_in == 'right') {
-		lucas.walk.x += lucas.speed;
+		if (!collision.right)
+			lucas.walk.x += lucas.speed;
 		if (update_direction) {	
 			lucas.current_direction = 'right';
 			lucas.walk.animations.play('right');
@@ -356,6 +424,5 @@ function kb_input() {
 }
 
 function render() {
-    //game.debug.spriteInfo(lucas.walk, 20, 32);
-
+    game.debug.spriteInfo(lucas.walk, 20, 32);
 }
