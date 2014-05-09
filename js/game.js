@@ -7,11 +7,6 @@ function preload() {
 	game.load.image('menu', 'assets/menu.png');
 	game.load.image('sign', 'assets/sign_post.png');
 	game.load.image('dir_sign', 'assets/directional_sign_post.png');
-	/*
-	game.load.image('menu_bg', 'assets/menu/bg.png');
-	game.load.image('menu_active_a', 'assets/menu/active_a.png');
-	game.load.image('menu_active_b', 'assets/menu/active_b.png');
-	*/
 	game.load.spritesheet('lucas_walk', 'assets/lucas_walk.png', 18, 28);
 }
 
@@ -33,76 +28,77 @@ var menu_item_bg;
  * Padding is added to the object box dimensions such that the object
  * behaves as if it were bigger than it actually is. 
  * Additionally, caller and object should be anchored in their centers. 
+ * SOMETHING ABOUT THE RETURN VALUE OF THIS MONSTER GOES HERE.
  */
 function collide(object, xpad, ypad, wpad, hpad) {
-		xpad = typeof xpad !== 'undefined' ? xpad : 0;
-		ypad = typeof ypad !== 'undefined' ? ypad : 0;
-		wpad = typeof wpad !== 'undefined' ? wpad : 0;
-		hpad = typeof hpad !== 'undefined' ? hpad : 0;
+	xpad = typeof xpad !== 'undefined' ? xpad : 0;
+	ypad = typeof ypad !== 'undefined' ? ypad : 0;
+	wpad = typeof wpad !== 'undefined' ? wpad : 0;
+	hpad = typeof hpad !== 'undefined' ? hpad : 0;
 
-		var up 			= false, 
-			down 		= false, 
-			left 		= false, 
-			right 		= false, 
-			inwidth 	= false, 
-			inheight 	= false;
-		var result = {
-			up: 	false,
-			down: 	false,
-			left: 	false,
-			right: 	false
-		};
+	var up 			= false, 
+		down 		= false, 
+		left 		= false, 
+		right 		= false, 
+		inwidth 	= false, 
+		inheight 	= false;
+	var result = {
+		up: 	false,
+		down: 	false,
+		left: 	false,
+		right: 	false
+	};
 
-		var tx1 = (this.x-this.width/2); 			// Left edge of this
-		var ox1 = (object.x-object.width/2-xpad);	// Left edge of object
-		var tx2 = (this.x+this.width/2);			// Right edge of this
-		var ox2 = (object.x+object.width/2+wpad);	// Left edge of object
-		var ty1 = (this.y-this.height/2);			// Top edge of this
-		var oy1 = (object.y-object.height/2-ypad);	// Top edge of object
-		var ty2 = (this.y+this.height/2);			// Bottom edge of this
-		var oy2 = (object.y+object.height/2+hpad);	// Bottom edge of object
+	var tx1 = (this.x-this.width/2); 			// Left edge of this
+	var ox1 = (object.x-object.width/2-xpad);	// Left edge of object
+	var tx2 = (this.x+this.width/2);			// Right edge of this
+	var ox2 = (object.x+object.width/2+wpad);	// Left edge of object
+	var ty1 = (this.y-this.height/2);			// Top edge of this
+	var oy1 = (object.y-object.height/2-ypad);	// Top edge of object
+	var ty2 = (this.y+this.height/2);			// Bottom edge of this
+	var oy2 = (object.y+object.height/2+hpad);	// Bottom edge of object
 
-		console.assert(tx2 > tx1, "Left edge of this is at a larger x coordinate than the right.");
-		console.assert(ty2 > ty1, "Top edge of this is at a larger y coordinate than the bottom.");		
-		console.assert(ox2 > ox1, "Left edge of object is at a larger x coordinate than the right.");
-		console.assert(oy2 > oy1, "Top edge of object is at a larger y coordinate than the bottom.");
+	console.assert(tx2 > tx1, "Left edge of this is at a larger x coordinate than the right.");
+	console.assert(ty2 > ty1, "Top edge of this is at a larger y coordinate than the bottom.");		
+	console.assert(ox2 > ox1, "Left edge of object is at a larger x coordinate than the right.");
+	console.assert(oy2 > oy1, "Top edge of object is at a larger y coordinate than the bottom.");
 
-		/* Determine conditions for collision */
-		if (ty1 <= oy2 && ty1 > oy1) { // Top edge of this <= bottom edge of object
-			up = true;					// AND top edge of this >= top edge of object
-		}
-		if (ty2 > oy1 && ty2 <= oy2) { // Bottom edge of this >= top edge of object
-			down = true;				// AND bottom edge of this <= bottom edge of object
-		}
-		if (tx1 <= ox2 && tx1 > ox1) { // Left edge of this <= right edge of object
-			left = true;				// AND left edge of this >= left edge of object
-		}
-		if (tx2 > ox1 && tx2 <= ox2) { // Right edge of this >= left edge of object
-			right = true;				// AND right edge of this <= right edge of object
-		}
-		if (tx1 <= ox1 && tx2 > ox2) { // Left edge of this <= left edge of object
-			inwidth = true;				// AND right edge of this >= right edge of object
-		}
-		if (ty1 <= oy1 && ty2 > oy2) { // Top edge of this <= top edge of object
-			inheight = true;			// Bottom edge of this >= bottom edge of object
-		}
-
-
-		/* Determine direction of collision */
-		if ((up && (right || left)) || (up && inwidth)) {
-			result.up = true; // return 'up';
-		}	
-		if ((down && (right || left)) || (down && inwidth)) {
-			result.down = true; // return 'down';
-		}
-		if ((left && (up || down)) || (left && inheight)) {
-			result.left = true; // return 'left';
-		}
-		if ((right && (up || down)) || (right && inheight)) {
-			result.right = true; // return 'right';
-		}
-		return result;
+	/* Determine conditions for collision */
+	if (ty1 <= oy2 && ty1 > oy1) { // Top edge of this <= bottom edge of object
+		up = true;					// AND top edge of this >= top edge of object
 	}
+	if (ty2 > oy1 && ty2 <= oy2) { // Bottom edge of this >= top edge of object
+		down = true;				// AND bottom edge of this <= bottom edge of object
+	}
+	if (tx1 <= ox2 && tx1 > ox1) { // Left edge of this <= right edge of object
+		left = true;				// AND left edge of this >= left edge of object
+	}
+	if (tx2 > ox1 && tx2 <= ox2) { // Right edge of this >= left edge of object
+		right = true;				// AND right edge of this <= right edge of object
+	}
+	if (tx1 <= ox1 && tx2 > ox2) { // Left edge of this <= left edge of object
+		inwidth = true;				// AND right edge of this >= right edge of object
+	}
+	if (ty1 <= oy1 && ty2 > oy2) { // Top edge of this <= top edge of object
+		inheight = true;			// Bottom edge of this >= bottom edge of object
+	}
+
+
+	/* Determine direction of collision */
+	if ((up && (right || left)) || (up && inwidth)) {
+		result.up = true; // return 'up';
+	}	
+	if ((down && (right || left)) || (down && inwidth)) {
+		result.down = true; // return 'down';
+	}
+	if ((left && (up || down)) || (left && inheight)) {
+		result.left = true; // return 'left';
+	}
+	if ((right && (up || down)) || (right && inheight)) {
+		result.right = true; // return 'right';
+	}
+	return result;
+}
 
 
 function create() {
@@ -272,9 +268,7 @@ function update_lucas(kb_in) {
 	var update_direction = false;
 	var wrap_overshoot = 36;
 
-	lucas.collision = lucas.collide(signs.sign1, -5, -10, -5, -35);
-
-	var collision = lucas.collision;
+	var collision = lucas.collision = lucas.collide(signs.sign1, -5, -10, -5, -35);
 
 	/* Map wrapping */
 	// If going farther would cause the camera to display something outside of the game world
@@ -311,6 +305,12 @@ function update_lucas(kb_in) {
 			lucas.walk.x -= lucas.speed;
 			lucas.walk.y += lucas.speed;
 		}
+		else if (collision.down) {
+			lucas.walk.x -= lucas.speed;
+		}
+		else if (collision.left) {
+			lucas.walk.y += lucas.speed;
+		}
 		if (update_direction) {
 			lucas.current_direction = 'down-left';
 			lucas.walk.animations.play('down-left');
@@ -319,6 +319,12 @@ function update_lucas(kb_in) {
 	else if (kb_in == 'down-right') {
 		if (!collision.down && !collision.right) {
 			lucas.walk.x += lucas.speed;
+			lucas.walk.y += lucas.speed;
+		}
+		else if (collision.down) {
+			lucas.walk.x += lucas.speed;
+		}
+		else if (collision.right) {
 			lucas.walk.y += lucas.speed;
 		}
 		if (update_direction) {
@@ -331,6 +337,12 @@ function update_lucas(kb_in) {
 			lucas.walk.x -= lucas.speed;
 			lucas.walk.y -= lucas.speed;
 		}
+		else if (collision.up) {
+			lucas.walk.x -= lucas.speed;
+		}
+		else if (collision.left) {
+			lucas.walk.y -= lucas.speed;
+		}
 		if (update_direction) {	
 			lucas.current_direction = 'up-left';
 			lucas.walk.animations.play('up-left');
@@ -339,6 +351,12 @@ function update_lucas(kb_in) {
 	else if (kb_in == 'up-right') {
 		if (!collision.up && !collision.right) {
 			lucas.walk.x += lucas.speed;
+			lucas.walk.y -= lucas.speed;
+		}
+		else if (collision.up) {
+			lucas.walk.x += lucas.speed;
+		}
+		else if (collision.right) {
 			lucas.walk.y -= lucas.speed;
 		}
 		if (update_direction) {	
