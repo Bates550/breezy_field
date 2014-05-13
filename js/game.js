@@ -5,6 +5,7 @@ var game = new Phaser.Game(600, 600, Phaser.CANVAS, '', { preload: preload, crea
 function preload() {
 	game.load.image('grass', 'assets/grass_tile.png');
 	game.load.image('menu', 'assets/menu.png');
+	game.load.image('msg_box', 'assets/message_box.png');
 	game.load.image('sign', 'assets/sign_post.png');
 	game.load.image('dir_sign', 'assets/directional_sign_post.png');
 	game.load.spritesheet('lucas_walk', 'assets/lucas_walk.png', 18, 28);
@@ -12,16 +13,14 @@ function preload() {
 
 var cursors; 
 var pause_key;
+var interact_key;
 var pause = false;
 var lucas = {};
 var grass;
 var signs = {};
 var menu = {};
+var msg_box;
 var main_group;
-/*
-var menu_bg;
-var menu_item_bg;
-*/
 
 /* General function for box collision detection. 
  * Should be assigned as a method to an object with x, y, width, and height 
@@ -84,23 +83,36 @@ function collide(object, xpad, ypad, wpad, hpad) {
 		inheight = true;			// Bottom edge of this >= bottom edge of object
 	}
 
-
 	/* Determine direction of collision */
 	if ((up && (right || left)) || (up && inwidth)) {
-		result.up = true; // return 'up';
+		result.up = true; 
 	}	
 	if ((down && (right || left)) || (down && inwidth)) {
-		result.down = true; // return 'down';
+		result.down = true;
 	}
 	if ((left && (up || down)) || (left && inheight)) {
-		result.left = true; // return 'left';
+		result.left = true; 
 	}
 	if ((right && (up || down)) || (right && inheight)) {
-		result.right = true; // return 'right';
+		result.right = true;
 	}
+
+	if (result.up || result.down || result.left || result.right)
+		this.colliding = {
+			obj: object,
+			direction: result
+		}
+	else 
+		this.colliding = undefined;
+	//console.log(this.colliding);
+
+	/*if ( (result.up || result.down || result.left || result.right) && game.input.keyboard.justPressed(Phaser.Keyboard.A, 25) ) {
+		if (typeof object.interact == 'function') { // Make sure object has an interact method
+			object.interact(this);
+		}
+	}*/
 	return result;
 }
-
 
 function create() {
 	/* World Bounds */
@@ -117,25 +129,80 @@ function create() {
 		}
 	}, this);
 
+	interact_key = game.input.keyboard.addKey(Phaser.Keyboard.A);
+	interact_key.onDown.add(function() {
+		if (game.input.keyboard.justPressed(Phaser.Keyboard.A, 25) && (lucas.colliding != undefined) ) {
+			lucas.colliding.obj.interact(lucas, lucas.colliding.direction);
+		}
+	}, this);
+
 	/* Grass */
 	grass = game.add.tileSprite(game.world.x, game.world.y, game.world.width, game.world.height, 'grass');
 	grass.scale.setTo(2, 2);
 
+	/* Message Box */
+	msg_box = game.add.sprite(game.width/2, game.height/2, 'msg_box');
+	msg_box.anchor.setTo(0.5, 0.5);
+	msg_box.exists = false;
+	msg_box.text = game.add.text(0, 0, "Sometimes when you're stuck, the best thing to do is keep moving forward...", 
+		{ font: "10pt Courier" });
+	msg_box.text.anchor.setTo(0.5, 0.5);
+
+	/* Main Group -- contains all interactive and collidable sprites */
 	main_group = game.add.group();
 
 	/* Signs */
-	//signs.sign1 = game.add.sprite(game.world.width/2+30, game.world.y+game.world.height/2, 'sign');
 	signs.sign1 = main_group.create(game.world.width/2+30, game.world.y+game.world.height/2, 'sign');
 	signs.sign1.scale.setTo(2, 2);
 	signs.sign1.anchor.setTo(0.5, 0.5);
+	signs.sign1.interact = function(object, collision_direction) {
+		if (collision_direction.up) {
+			// Update message box coords
+			msg_box.x = lucas.x;
+			msg_box.y = lucas.y+237;
+			msg_box.text.x = lucas.x;
+			msg_box.text.y = lucas.y+237;
+
+			if (msg_box.exists) {
+				msg_box.exists = false;
+				msg_box.text.setText("");
+			}
+			else {
+				msg_box.exists = true;
+				msg_box.text.setText("Sometimes when you're stuck, the best thing to do is keep moving forward...")
+			}
+
+			pause = !pause;
+		}
+	}
+
 	signs.sign2 = main_group.create(game.world.width/2-30, game.world.y+game.world.height/2, 'dir_sign');
 	signs.sign2.scale.setTo(2, 2);
 	signs.sign2.anchor.setTo(0.5, 0.5);
-	//var sign1 = signs.sign1;
-	//console.log(sign1.x-sign1.width/2, sign1.y-sign1.height/2, sign1.x+sign1.width/2, sign1.y+sign1.height/2);
+	signs.sign2.interact = function(object, collision_direction) {
+		if (collision_direction.up) {
+			// Update message box coords
+			msg_box.x = lucas.x;
+			msg_box.y = lucas.y+237;
+			msg_box.text.x = lucas.x;
+			msg_box.text.y = lucas.y+237;
+
+			if (msg_box.exists) {
+				msg_box.exists = false;
+				msg_box.text.setText("");
+			}
+			else {
+				msg_box.exists = true;
+				msg_box.text.setText("North: South\nEast: West\nSouth: North\nWest: East");
+			}
+
+			pause = !pause;
+		}
+	}
 
 	/* Lucas */
 	lucas.current_direction = 'none';
+	lucas.colliding = undefined;
 	lucas.collision = {up: false, down: false, left: false, right: false}
 	lucas.update_threshold = 7;
 	lucas.last_updated = 0;
@@ -145,7 +212,6 @@ function create() {
 	lucas.x = 690; //game.width/2;
 	lucas.y = 650;//game.height/2;
 
-	//lucas.walk = game.add.sprite(lucas.x, lucas.y, 'lucas_walk');
 	lucas.walk = main_group.create(lucas.x, lucas.y, 'lucas_walk');
 	lucas.walk.scale.setTo(lucas.scale, lucas.scale);
 	lucas.walk.anchor.setTo(0.5, 0.5);
@@ -196,39 +262,15 @@ function create() {
 
 	/* Menu Background */
 	menu.found = false; // Becomes true when the player finds the menu item and grants access to the menu.
+	menu.appear = false; // Becomes true when the player walks in one direction for long enough; causes menu bot to appear.
 	menu.x = game.width/2;
 	menu.y = game.height/2;
-	//menu.exists = false;
-	//menu.spr = {};
-
-	/*
-	// Doesn't matter where we intially place any of the menu sprites: 
-	// their position will be updated in update_menu() before they are visible.
-	var menu_bg = game.add.sprite(0, 0, 'menu_bg');
-	menu_bg.exists = false;
-	menu.spr['bg'] = menu_bg;
-
-	var menu_active_a = game.add.sprite(0, 0, 'menu_active_a');
-	menu_active_a.exists = false;
-	menu.spr['menu_active_a'] = menu_active_a;
-
-	var menu_active_b = game.add.sprite(0, 0, 'menu_active_b');
-	menu_active_b.exists = false;
-	menu.spr['menu_active_b'] = menu_active_b;
-	*/
 
 	menu.spr = game.add.sprite(0, 0, 'menu');
 	menu.spr.exists = false;
 
 	menu.pause = function() {
-		if (menu.found) {
-			menu.spr.exists = !menu.spr.exists;
-		}
-		/*
-		menu.spr['bg'].exists 	= !menu.spr['bg'].exists;
-		menu.spr['menu_active_a'].exists	= !menu.spr['menu_active_a'].exists;
-		menu.spr['menu_active_b'].exists	= !menu.spr['menu_active_b'].exists;
-		*/
+		menu.spr.exists = !menu.spr.exists;
 	}
 }
 
@@ -249,30 +291,21 @@ function update_menu(kb_in) {
 
 	menu.spr.x = menu.x;
 	menu.spr.y = menu.y;
-	 
-	/*
-	menu.spr['bg'].x = menu.x;
-	menu.spr['bg'].y = menu.y;
 
-	menu.spr['menu_active_a'].x = menu.x + 15;
-	menu.spr['menu_active_a'].y = menu.y + 15;	
 
-	menu.spr['menu_active_b'].x = menu.x + 15;
-	menu.spr['menu_active_b'].y = menu.y + 145;	
-	*/
-
-	/*for (var key in menu.spr) {
-		var sprite = menu.spr[key];
-		sprite.x = menu.x;
-		sprite.y = menu.y;
-		//menu.spr[key].exists = menu.exists;
-	}*/
 }
 
 function update_lucas(kb_in) {
 	lucas.last_updated++;
 	var update_direction = false;
 	var wrap_overshoot = 36;
+
+	if (!menu.found) {
+		if (lucas.last_updated > 100) {
+			menu.appear = true; 
+			// Do some stuff to spawn the menu bot. 
+		}
+	}
 
 	var collision = lucas.collision = lucas.collide(signs.sign1, -5, -15, -5, -35);
 
