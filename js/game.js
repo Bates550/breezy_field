@@ -145,7 +145,10 @@ function create() {
 	msg_box.anchor.setTo(0.5, 0.5);
 	msg_box.exists = false;
 	msg_box.text = game.add.text(0, 0, "Sometimes when you're stuck, the best thing to do is keep moving forward...", 
-		{ font: "10pt Courier" });
+		{ 	font: "10pt Courier", 
+			wordWrap: true,
+			wordWrapWidth: msg_box.width
+		});
 	msg_box.text.anchor.setTo(0.5, 0.5);
 
 	/* Main Group -- contains all interactive and collidable sprites */
