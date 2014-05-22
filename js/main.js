@@ -1,6 +1,6 @@
 var window_width = document.documentElement.clientWidth; //window.screen.availWidth;
 var window_height = document.documentElement.clientHeight; //window.screen.availHeight;
-var game = new Phaser.Game(600, 600, Phaser.CANVAS, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(600, 600, Phaser.CANVAS, '', {preload: preload, create: create, update: update});
 
 function preload() {
 	game.load.image('grass', 'assets/grass_tile.png');
