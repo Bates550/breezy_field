@@ -5,7 +5,10 @@
         baseUrl: "js/",
         
         paths: {
-        	phaser:   'libs/phaser/phaser.min',
+        	phaser:    'libs/phaser/phaser.min',
+            preload:   'include/preload',
+            create:    'include/create',
+            update:    'include/update',   
         },
 
         shim: {
